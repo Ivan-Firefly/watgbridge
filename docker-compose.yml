@@ -1,0 +1,24 @@
+services:
+  watgbridge:
+    image: firefly27/watgbridge:latest
+    container_name: watgbridge
+    pull_policy: always
+    restart: unless-stopped
+    init: true
+
+    working_dir: /data
+    command:
+      - /go/src/watgbridge/watgbridge
+      - /data/config.yaml
+
+    volumes:
+      - ./:/data
+
+    stdin_open: true
+    tty: true
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
