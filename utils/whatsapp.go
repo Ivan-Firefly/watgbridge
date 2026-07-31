@@ -1,5 +1,7 @@
 package utils
 
+// LID-based contacts use the resolved WhatsApp phone number for display.
+
 import (
 	"context"
 	"fmt"
@@ -191,6 +193,7 @@ func WaGetContactName(jid types.JID) string {
 
 	var name string
 	waClient := state.State.WhatsAppClient
+	displayUser := jid.User
 
 	var (
 		pn           types.JID
@@ -205,6 +208,9 @@ func WaGetContactName(jid types.JID) string {
 	if jid.Server == types.HiddenUserServer {
 		pn, err = waClient.Store.LIDs.GetPNForLID(context.Background(), jid)
 		if err == nil {
+			if pn.User != "" {
+				displayUser = pn.User
+			}
 			firstName, fullName, pushName, businessName, found, err = database.ContactNameGet(pn.User, pn.Server)
 		}
 	}
@@ -217,11 +223,11 @@ func WaGetContactName(jid types.JID) string {
 		if fullName != "" {
 			name = fullName
 		} else if businessName != "" {
-			name = businessName + " (" + jid.User + ")"
+			name = businessName + " (" + displayUser + ")"
 		} else if pushName != "" {
-			name = pushName + " (" + jid.User + ")"
+			name = pushName + " (" + displayUser + ")"
 		} else if firstName != "" {
-			name = firstName + " (" + jid.User + ")"
+			name = firstName + " (" + displayUser + ")"
 		}
 	} else {
 		contact, err := waClient.Store.Contacts.GetContact(context.Background(), jid)
@@ -229,17 +235,17 @@ func WaGetContactName(jid types.JID) string {
 			if contact.FullName != "" {
 				name = contact.FullName
 			} else if contact.BusinessName != "" {
-				name = contact.BusinessName + " (" + jid.User + ")"
+				name = contact.BusinessName + " (" + displayUser + ")"
 			} else if contact.PushName != "" {
-				name = contact.PushName + " (" + jid.User + ")"
+				name = contact.PushName + " (" + displayUser + ")"
 			} else if contact.FirstName != "" {
-				name = contact.FirstName + " (" + jid.User + ")"
+				name = contact.FirstName + " (" + displayUser + ")"
 			}
 		}
 	}
 
 	if name == "" {
-		name = jid.User
+		name = displayUser
 	}
 
 	return name
